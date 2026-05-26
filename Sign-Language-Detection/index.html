@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SignGloveNet: Operational-Hour Sign Language Translation Console</title>
+    <meta name="description" content="A real-time sign language computer vision translation console featuring custom MLP hand contour classifiers, time-domain operational gating, and image uploads.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+    <!-- Custom CSS Style -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="sign-theme">
+
+    <!-- Glowing Background Accents -->
+    <div class="sign-glow left-glow"></div>
+    <div class="sign-glow right-glow"></div>
+
+    <div class="console-box">
+        <!-- Dashboard Header -->
+        <header class="console-header">
+            <div class="header-branding">
+                <span class="hud-status-led pulsing-green" id="sys-status-led"></span>
+                <h1 class="hud-title">SIGN-GLOVE-NET</h1>
+                <span class="hud-divider"></span>
+                <span class="hud-tag">SURVEILLANCE TRANSLATOR v3.2</span>
+            </div>
+            
+            <div class="header-hud-stats">
+                <div class="hud-stat">
+                    <span class="hud-lbl">GATEWAY STATE</span>
+                    <span class="hud-val text-glow-cyan" id="stat-gateway-state">OPERATIONAL</span>
+                </div>
+                <div class="hud-stat">
+                    <span class="hud-lbl">TRANSLATED TERMS</span>
+                    <span class="hud-val text-glow-green" id="stat-total-translations">0</span>
+                </div>
+                <div class="hud-stat">
+                    <span class="hud-lbl">TIME WINDOW</span>
+                    <span class="hud-val text-glow-gold" id="stat-time-window">6 PM - 10 PM</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Workspace Grid -->
+        <main class="dashboard-grid">
+            
+            <!-- COLUMN 1: Real-time visual hand tracker feed -->
+            <section class="panel-card glass-panel" id="monitor-section">
+                <div class="panel-title-bar">
+                    <span class="bar-icon">&#x26F2;</span>
+                    <h2>REAL-TIME SURVEILLANCE FEED</h2>
+                    <span class="fps-hud" id="hud-fps">FPS: 60</span>
+                </div>
+                
+                <div class="panel-body">
+                    <!-- Feed Mode Tabs -->
+                    <div class="feed-tabs">
+                        <button class="tab-btn active" id="tab-presets" type="button">
+                            &#x270B; ASL GESTURE PRESETS
+                        </button>
+                        <button class="tab-btn" id="tab-webcam" type="button">
+                            &#x1F4F9; SURVEILLANCE CAMERA
+                        </button>
+                    </div>
+
+                    <!-- Surveillance Viewport Canvas -->
+                    <div class="viewport-outer">
+                        <div class="viewport-reticle"></div>
+                        <video id="webcam-video" autoplay playsinline muted style="display: none;"></video>
+                        <canvas id="surveillance-canvas" width="580" height="360"></canvas>
+                        
+                        <!-- TIME LOCK OVERLAY (cyberpunk red shut-down block) -->
+                        <div class="viewport-lock-overlay" id="time-lock-screen">
+                            <div class="lock-box">
+                                <span class="lock-icon">&#x26A0;</span>
+                                <span class="lock-title">SURVEILLANCE TERMINAL SHUTDOWN</span>
+                                <span class="lock-desc">System locked outside operational window.</span>
+                                <span class="lock-hours">OPERATING HOURS: 18:00 - 22:00 (6 PM - 10 PM)</span>
+                                <span class="lock-tip">Use the "Simulated System Clock" slider in the right panel to calibrate time and unlock the terminal.</span>
+                            </div>
+                        </div>
+
+                        <!-- Technical HUD status overlay -->
+                        <div class="viewport-hud-bottom">
+                            <div>SOURCE: <span class="text-glow-green" id="hud-feed-source">ASL_VECTOR_PRESETS</span></div>
+                            <div id="hud-clock">00:00:00</div>
+                        </div>
+                    </div>
+
+                    <!-- Surveillance Feed Controllers -->
+                    <div class="feed-controllers">
+                        <!-- Simulator Controls Panel -->
+                        <div class="ctrl-subpanel active" id="ctrl-presets-panel">
+                            <span class="section-label">CLICK PRESETS TO SYNTHESIZE GESTURES ON MONITOR</span>
+                            <div class="presets-grid">
+                                <button class="preset-btn" id="preset-1" data-word="Hello" data-desc="Flat open hand upright (Greeting)">
+                                    <span class="preset-title">ASL: "HELLO"</span>
+                                    <span class="preset-desc">Flat hand palm outward</span>
+                                </button>
+                                <button class="preset-btn" id="preset-2" data-word="Thank You" data-desc="Flat hand tilting forward from chin">
+                                    <span class="preset-title">ASL: "THANK YOU"</span>
+                                    <span class="preset-desc">Tilted palm forward</span>
+                                </button>
+                                <button class="preset-btn" id="preset-3" data-word="Yes" data-desc="Closed fist nodding (Agreement)">
+                                    <span class="preset-title">ASL: "YES"</span>
+                                    <span class="preset-desc">Closed compact fist shape</span>
+                                </button>
+                                <button class="preset-btn" id="preset-4" data-word="No" data-desc="Index & middle fingers snap down to thumb">
+                                    <span class="preset-title">ASL: "NO"</span>
+                                    <span class="preset-desc">Narrow vertical snap posture</span>
+                                </button>
+                                <button class="preset-btn" id="preset-5" data-word="Help" data-desc="Thumbs-up hand resting on open flat palm">
+                                    <span class="preset-title">ASL: "HELP"</span>
+                                    <span class="preset-desc">Asymmetrical thumbs-up base</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Webcam Controls Panel -->
+                        <div class="ctrl-subpanel" id="ctrl-webcam-panel">
+                            <div class="ctrl-row">
+                                <button class="cyber-btn primary-btn" id="btn-start-webcam">
+                                    &#x25B6; Launch Webcam Stream
+                                </button>
+                                <button class="cyber-btn" id="btn-stop-webcam" disabled>
+                                    &#x274C; Disconnect Feed
+                                </button>
+                            </div>
+                            <!-- Image Drag & Drop File Zone -->
+                            <div class="upload-zone" id="image-drop-zone">
+                                <span class="upload-icon">&#x21A1;</span>
+                                <span class="upload-text">Drag & Drop Hand Gesture Image or Click to Scan</span>
+                                <input type="file" id="image-file-input" accept="image/*" style="display: none;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- COLUMN 2: Demographics, Time Locks, Ledger & Telemetry HUD -->
+            <section class="panel-card glass-panel" id="database-section">
+                <div class="panel-title-bar">
+                    <span class="bar-icon">&#x26C4;</span>
+                    <h2>DECISION ENGINE & LEDGER</h2>
+                </div>
+                
+                <div class="panel-body db-panel-body">
+                    <!-- Simulated clock slider section (Temporal Lock Controller) -->
+                    <div class="time-lock-controller glass-box" id="time-controller-card">
+                        <div class="tc-header">
+                            <h3>SURVEILLANCE TIMEFRAME GATEWAY</h3>
+                            <span class="tc-tag font-hud" id="time-lock-status">OPERATIONAL</span>
+                        </div>
+                        <p class="tc-desc">Surveillance operates strictly between 6 PM and 10 PM. Use this slider to override the system clock to test the terminal at any hour.</p>
+                        
+                        <div class="time-slider-group">
+                            <div class="ts-labels">
+                                <span>Simulated System Clock:</span>
+                                <span class="text-glow-yellow font-hud" id="simulated-time-display">08:00 PM</span>
+                            </div>
+                            <div class="time-range-wrapper">
+                                <input type="range" id="time-slider" min="0" max="23" value="20" class="cyber-slider">
+                                <div class="operational-band" title="System Operational Range (18:00 - 22:00)"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Visual Outcome Prediction Card -->
+                    <div class="outcome-card" id="gesture-result-card">
+                        <div class="card-decor"></div>
+                        <div class="result-header">
+                            <span class="result-badge">GESTURE TRANSLATION DETECTED</span>
+                            <span class="result-led" id="card-status-led"></span>
+                        </div>
+                        <div class="result-main-val text-glow-green" id="translated-word-text">AWAITING INPUT</div>
+                        
+                        <!-- Confidence progression bar -->
+                        <div class="confidence-bar-container">
+                            <div class="confidence-bar-fill" id="prediction-confidence-fill"></div>
+                            <div class="confidence-labels">
+                                <span class="prob-lbl">Translation Match Probability</span>
+                                <span class="prob-val text-glow-cyan" id="prediction-confidence-val">--%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Hand Geometry Telemetry HUD -->
+                    <div class="hand-telemetry-hud glass-box">
+                        <h3>HAND SILHOUETTE FEATURES TELEMETRY</h3>
+                        <div class="telemetry-bars-list">
+                            <!-- Feature 1: Aspect Ratio -->
+                            <div class="feature-bar-group">
+                                <div class="fb-labels">
+                                    <span>Bounding Aspect Ratio (W/H scale)</span>
+                                    <span class="text-glow-cyan font-hud" id="hud-val-aspect">--</span>
+                                </div>
+                                <div class="fb-track">
+                                    <div class="fb-fill fill-cyan" id="hud-fill-aspect"></div>
+                                </div>
+                                <span class="fb-desc">Fists yields square aspect ratios (~1.0), tall gestures Hello/No yield narrow ratios (<0.7)</span>
+                            </div>
+
+                            <!-- Feature 2: Solidity -->
+                            <div class="feature-bar-group">
+                                <div class="fb-labels">
+                                    <span>Solidity (Internal pixel density ratio)</span>
+                                    <span class="text-glow-yellow font-hud" id="hud-val-solidity">--%</span>
+                                </div>
+                                <div class="fb-track">
+                                    <div class="fb-fill fill-yellow" id="hud-fill-solidity"></div>
+                                </div>
+                                <span class="fb-desc">Percentage of filled hand shape pixels inside bounding limits (fists exceed 80%)</span>
+                            </div>
+
+                            <!-- Feature 3: Quadrant balances -->
+                            <div class="feature-bar-group">
+                                <div class="fb-labels">
+                                    <span>Quadrant balance (Top-to-Bottom distribution)</span>
+                                    <span class="text-glow-green font-hud" id="hud-val-balance">--%</span>
+                                </div>
+                                <div class="fb-track">
+                                    <div class="fb-fill fill-green" id="hud-fill-balance"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Scrolling Database translation logs Table -->
+                    <div class="table-container">
+                        <table class="hud-table" id="translation-table">
+                            <thead>
+                                <tr>
+                                    <th>LOG ID</th>
+                                    <th>TIMESTAMP</th>
+                                    <th>PREDICTED SIGN</th>
+                                    <th>CONFIDENCE RATE</th>
+                                </tr>
+                            </thead>
+                            <tbody id="translation-table-body">
+                                <tr>
+                                    <td colspan="4" class="empty-table-msg">Surveillance ledger standby. Activate feeds to record translation history.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="model.js"></script>
+    <script src="ui.js"></script>
+</body>
+</html>
