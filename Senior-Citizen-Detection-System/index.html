@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SeniorCitizenEye: Surveillance Demographics Analytics Console</title>
+    <meta name="description" content="A real-time age and gender classification surveillance console for stores and malls, featuring a custom computer vision pixel wrinkle extractor and direct CSV exports.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+    <!-- Custom CSS Style -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="surveillance-theme">
+
+    <!-- Glowing Background Accents -->
+    <div class="surveillance-glow left-glow"></div>
+    <div class="surveillance-glow right-glow"></div>
+
+    <div class="console-box">
+        <!-- Dashboard Header -->
+        <header class="console-header">
+            <div class="header-branding">
+                <span class="hud-status-led pulsing-green" id="sys-status-led"></span>
+                <h1 class="hud-title">SENIOR-CITIZEN-EYE</h1>
+                <span class="hud-divider"></span>
+                <span class="hud-tag">DEMOGRAPHIC ANALYTICS SYSTEM v2.4</span>
+            </div>
+            
+            <div class="header-hud-stats">
+                <div class="hud-stat">
+                    <span class="hud-lbl">TOTAL SCAN RES</span>
+                    <span class="hud-val text-glow-cyan" id="stat-total-scans">0</span>
+                </div>
+                <div class="hud-stat">
+                    <span class="hud-lbl">SENIOR CITIZENS</span>
+                    <span class="hud-val text-glow-gold" id="stat-senior-scans">0</span>
+                </div>
+                <div class="hud-stat">
+                    <span class="hud-lbl">ELDERLY PERCENT</span>
+                    <span class="hud-val text-glow-yellow" id="stat-senior-ratio">0.0%</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Workspace Grid -->
+        <main class="dashboard-grid">
+            
+            <!-- COLUMN 1: Real-time surveillance monitor -->
+            <section class="panel-card glass-panel" id="monitor-section">
+                <div class="panel-title-bar">
+                    <span class="bar-icon">&#x26F2;</span>
+                    <h2>REAL-TIME SURVEILLANCE FEED</h2>
+                    <span class="fps-hud" id="hud-fps">FPS: 60</span>
+                </div>
+                
+                <div class="panel-body">
+                    <!-- Surveillance Mode Tabs -->
+                    <div class="feed-tabs">
+                        <button class="tab-btn active" id="tab-sim" type="button">
+                            &#x1F46A; MALL CROWD SIMULATOR
+                        </button>
+                        <button class="tab-btn" id="tab-webcam" type="button">
+                            &#x1F4F9; LIVE WEBCAM SCANNER
+                        </button>
+                    </div>
+
+                    <!-- Surveillance Viewport Canvas -->
+                    <div class="viewport-outer">
+                        <!-- Holographic reticles -->
+                        <div class="viewport-reticle"></div>
+                        <video id="webcam-video" autoplay playsinline muted style="display: none;"></video>
+                        <canvas id="surveillance-canvas" width="600" height="380"></canvas>
+                        
+                        <!-- Overlay HUD alerts -->
+                        <div class="viewport-alert-overlay" id="senior-alert-banner">
+                            <span class="alert-flash">&#x26A0;</span> SENIOR CITIZEN VISITOR REGISTERED <span class="alert-flash">&#x26A0;</span>
+                        </div>
+                        
+                        <!-- Technical HUD status overlay -->
+                        <div class="viewport-hud-bottom">
+                            <div>SOURCE: <span class="text-glow-green" id="hud-feed-source">CROWD_SIMULATOR_A</span></div>
+                            <div id="hud-clock">00:00:00</div>
+                        </div>
+                    </div>
+
+                    <!-- Surveillance Feed Controllers -->
+                    <div class="feed-controllers">
+                        <!-- Simulator Controls Panel -->
+                        <div class="ctrl-subpanel active" id="ctrl-sim-panel">
+                            <div class="ctrl-row">
+                                <button class="cyber-btn primary-btn" id="btn-spawn-shopper">
+                                    &#x2795; Spawn Custom Shopper
+                                </button>
+                                <button class="cyber-btn" id="btn-clear-sim">
+                                    &#x21BB; Flush Simulator
+                                </button>
+                            </div>
+                            <div class="slider-row">
+                                <label for="sim-speed">Mall Pace:</label>
+                                <input type="range" id="sim-speed" min="1" max="4" value="2" class="cyber-slider">
+                                <span class="slider-val" id="sim-speed-val">2x Speed</span>
+                            </div>
+                        </div>
+
+                        <!-- Webcam Controls Panel -->
+                        <div class="ctrl-subpanel" id="ctrl-webcam-panel">
+                            <div class="ctrl-row">
+                                <button class="cyber-btn primary-btn" id="btn-start-webcam">
+                                    &#x25B6; Launch Webcam Stream
+                                </button>
+                                <button class="cyber-btn" id="btn-stop-webcam" disabled>
+                                    &#x274C; Close Camera
+                                </button>
+                            </div>
+                            <p class="ctrl-note">Camera access requires browser user permissions. Scanning performs local canvas pixel variance texture checks.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- COLUMN 2: Visitor Demographic Database Ledger & CSV Download -->
+            <section class="panel-card glass-panel" id="database-section">
+                <div class="panel-title-bar">
+                    <span class="bar-icon">&#x26C4;</span>
+                    <h2>MALL VISITOR DATABASE REGISTRY</h2>
+                </div>
+                
+                <div class="panel-body db-panel-body">
+                    <!-- Analytics Quick HUD -->
+                    <div class="analytics-hud glass-box">
+                        <div class="ah-item">
+                            <span class="ah-lbl">AVERAGE AGE</span>
+                            <span class="ah-val text-glow-cyan" id="db-avg-age">--</span>
+                        </div>
+                        <div class="ah-item">
+                            <span class="ah-lbl">GENDER ratio</span>
+                            <span class="ah-val text-glow-yellow" id="db-gender-ratio">--</span>
+                        </div>
+                        <div class="ah-item">
+                            <span class="ah-lbl">SENIORS LOGGED</span>
+                            <span class="ah-val text-glow-gold" id="db-seniors-count">--</span>
+                        </div>
+                    </div>
+
+                    <!-- Scrolling Database Ledger Table -->
+                    <div class="table-container">
+                        <table class="hud-table" id="visitor-table">
+                            <thead>
+                                <tr>
+                                    <th>VISITOR ID</th>
+                                    <th>VISIT TIME</th>
+                                    <th>EST. AGE</th>
+                                    <th>GENDER</th>
+                                    <th>DEMOGRAPHIC STATUS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="visitor-table-body">
+                                <tr>
+                                    <td colspan="5" class="empty-table-msg">Surveillance registry offline. Initiate feeds to record mall demographic logs.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- CSV database exporter panel -->
+                    <div class="exporter-panel glass-box">
+                        <div class="exp-header">
+                            <h3>VISITOR REGISTRY DATABASE MODULE</h3>
+                            <span class="exp-tag">FORMAT: EXCEL CSV (RFC-4180)</span>
+                        </div>
+                        <p class="exp-desc">Export the entire visitor log history including Visitor ID, Visit Timestamp, Estimated Age, Predicted Gender, and Senior Citizen category validation directly to a CSV file.</p>
+                        <button class="export-glow-btn" id="btn-export-csv" type="button">
+                            &#x2199; EXPORT VISITOR REGISTRY (CSV)
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer Analytics Charts Grid -->
+        <footer class="console-footer">
+            <section class="panel-card glass-panel">
+                <div class="panel-title-bar">
+                    <span class="bar-icon">&#x26A1;</span>
+                    <h2>DEMOGRAPHIC DISTRIBUTION CHARTS & TRAFFIC HISTOGRAMS</h2>
+                </div>
+                <div class="panel-body footer-panel-body">
+                    <div class="charts-layout">
+                        <!-- Chart 1: Age demographics distribution -->
+                        <div class="chart-wrapper glass-box">
+                            <h3 class="chart-title">Age Category Distribution</h3>
+                            <canvas id="age-chart" width="480" height="120"></canvas>
+                        </div>
+                        <!-- Chart 2: Time of visit distribution -->
+                        <div class="chart-wrapper glass-box">
+                            <h3 class="chart-title">Hourly Traffic Footprint</h3>
+                            <canvas id="traffic-chart" width="480" height="120"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="model.js"></script>
+    <script src="ui.js"></script>
+</body>
+</html>
