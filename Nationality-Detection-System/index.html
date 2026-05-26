@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NationalityEye: Biometric Demographics & Emotion Classifier</title>
+    <meta name="description" content="A real-time demographic surveillance console predicting nationality, emotion, age, and dress color from images, featuring custom MLP neural networks.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+    <!-- Custom CSS Style -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="demographics-theme">
+
+    <!-- Glowing Background Accents -->
+    <div class="demographics-glow left-glow"></div>
+    <div class="demographics-glow right-glow"></div>
+
+    <div class="console-box">
+        <!-- Dashboard Header -->
+        <header class="console-header">
+            <div class="header-branding">
+                <span class="hud-status-led pulsing-green" id="sys-status-led"></span>
+                <h1 class="hud-title">NATIONALITY-EYE</h1>
+                <span class="hud-divider"></span>
+                <span class="hud-tag">BIOMETRIC DEMOGRAPHIC CLASSIFIER v4.2</span>
+            </div>
+            
+            <div class="header-hud-stats">
+                <div class="hud-stat">
+                    <span class="hud-lbl">SURVEILLANCE STATE</span>
+                    <span class="hud-val text-glow-cyan" id="stat-system-state">ACTIVE</span>
+                </div>
+                <div class="hud-stat">
+                    <span class="hud-lbl">VISUAL HITS</span>
+                    <span class="hud-val text-glow-green" id="stat-total-scans">0</span>
+                </div>
+                <div class="hud-stat">
+                    <span class="hud-lbl">MELANIN SCALE</span>
+                    <span class="hud-val text-glow-gold" id="stat-melanin-avg">0.35</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Workspace Grid -->
+        <main class="dashboard-grid">
+            
+            <!-- COLUMN 1: Real-time visual hand tracker feed -->
+            <section class="panel-card glass-panel" id="monitor-section">
+                <div class="panel-title-bar">
+                    <span class="bar-icon">&#x26F2;</span>
+                    <h2>REAL-TIME BIOMETRIC SCANNER</h2>
+                    <span class="fps-hud" id="hud-fps">FPS: 60</span>
+                </div>
+                
+                <div class="panel-body">
+                    <!-- Feed Mode Tabs -->
+                    <div class="feed-tabs">
+                        <button class="tab-btn active" id="tab-presets" type="button">
+                            &#x1F465; DEMOGRAPHIC SUBJECT PRESETS
+                        </button>
+                        <button class="tab-btn" id="tab-webcam" type="button">
+                            &#x1F4F9; SURVEILLANCE CAMERA
+                        </button>
+                    </div>
+
+                    <!-- Surveillance Viewport Canvas -->
+                    <div class="viewport-outer">
+                        <div class="viewport-reticle"></div>
+                        <video id="webcam-video" autoplay playsinline muted style="display: none;"></video>
+                        <canvas id="surveillance-canvas" width="580" height="360"></canvas>
+                        
+                        <!-- Technical HUD status overlay -->
+                        <div class="viewport-hud-bottom">
+                            <div>FEED: <span class="text-glow-green" id="hud-feed-source">SUBJECT_PRESETS_B</span></div>
+                            <div id="hud-clock">00:00:00</div>
+                        </div>
+                    </div>
+
+                    <!-- Surveillance Feed Controllers -->
+                    <div class="feed-controllers">
+                        <!-- Presets Panel -->
+                        <div class="ctrl-subpanel active" id="ctrl-presets-panel">
+                            <span class="section-label">CLICK PRESETS TO LOAD DEMOGRAPHIC SUBJECTS</span>
+                            <div class="presets-grid">
+                                <button class="preset-btn active" id="preset-1" data-name="Aarav" data-nation="Indian" data-emotion="Happy" data-dress="Red" data-r="230" data-g="20" data-b="50">
+                                    <span class="preset-title">Preset A: Aarav</span>
+                                    <span class="preset-desc">Indian (All metrics active)</span>
+                                </button>
+                                <button class="preset-btn" id="preset-2" data-name="John" data-nation="United States" data-emotion="Calm" data-dress="Blue" data-r="20" data-g="70" data-b="240">
+                                    <span class="preset-title">Preset B: John</span>
+                                    <span class="preset-desc">United States (Dress restricted)</span>
+                                </button>
+                                <button class="preset-btn" id="preset-3" data-name="Kofi" data-nation="African" data-emotion="Sad" data-dress="Green" data-r="20" data-g="180" data-b="50">
+                                    <span class="preset-title">Preset C: Kofi</span>
+                                    <span class="preset-desc">African (Age restricted)</span>
+                                </button>
+                                <button class="preset-btn" id="preset-4" data-name="Yuki" data-nation="Other" data-emotion="Happy" data-dress="Yellow" data-r="240" data-g="220" data-b="10">
+                                    <span class="preset-title">Preset D: Yuki</span>
+                                    <span class="preset-desc">Other: Japanese (Age & Dress restricted)</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Webcam Controls Panel -->
+                        <div class="ctrl-subpanel" id="ctrl-webcam-panel">
+                            <div class="ctrl-row">
+                                <button class="cyber-btn primary-btn" id="btn-start-webcam">
+                                    &#x25B6; Launch Webcam Stream
+                                </button>
+                                <button class="cyber-btn" id="btn-stop-webcam" disabled>
+                                    &#x274C; Disconnect Feed
+                                </button>
+                            </div>
+                            <!-- Image Drag & Drop File Zone -->
+                            <div class="upload-zone" id="image-drop-zone">
+                                <span class="upload-icon">&#x21A1;</span>
+                                <span class="upload-text">Drag & Drop Subject Photo or Click to Preview & Scan</span>
+                                <input type="file" id="image-file-input" accept="image/*" style="display: none;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- COLUMN 2: Decision Outcomes, Locks, Telemetry & Ledger -->
+            <section class="panel-card glass-panel" id="database-section">
+                <div class="panel-title-bar">
+                    <span class="bar-icon">&#x26C4;</span>
+                    <h2>INTELLIGENT DECISION MODULE</h2>
+                </div>
+                
+                <div class="panel-body db-panel-body">
+                    <!-- Visual Outcome Prediction Card -->
+                    <div class="outcome-card" id="demographic-result-card">
+                        <div class="card-decor"></div>
+                        <div class="result-header">
+                            <span class="result-badge">BIOMETRIC SURVEILLANCE REPORT</span>
+                            <span class="result-led" id="card-status-led"></span>
+                        </div>
+                        
+                        <!-- Core nationality & emotion values -->
+                        <div class="result-main-row">
+                            <div class="rm-block">
+                                <span class="rm-lbl">NATIONALITY</span>
+                                <span class="rm-val text-glow-green" id="res-val-nation">AWAITING INPUT</span>
+                            </div>
+                            <div class="rm-block">
+                                <span class="rm-lbl">EMOTIONAL STATE</span>
+                                <span class="rm-val text-glow-cyan" id="res-val-emotion">AWAITING INPUT</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Conditional metrics grids containing age & dress locks -->
+                        <div class="conditional-board">
+                            <!-- Age display row -->
+                            <div class="cond-item" id="cond-item-age">
+                                <span class="ci-lbl">FORENSIC ESTIMATED AGE</span>
+                                <span class="ci-val text-glow-yellow" id="res-val-age">-- yrs</span>
+                                <span class="ci-lock text-glow-red" id="res-lock-age" style="display: none;">🔒 LCK: Restricted</span>
+                            </div>
+                            <!-- Dress Color display row -->
+                            <div class="cond-item" id="cond-item-dress">
+                                <span class="ci-lbl">CLOTHING DRESS COLOUR</span>
+                                <div class="ci-swatch-row" id="res-swatch-row">
+                                    <span class="ci-swatch" id="res-swatch-box"></span>
+                                    <span class="ci-val text-glow-gold" id="res-val-dress">--</span>
+                                </div>
+                                <span class="ci-lock text-glow-red" id="res-lock-dress" style="display: none;">🔒 LCK: Restricted</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Biometric Feature Telemetry HUD -->
+                    <div class="biometric-telemetry-hud glass-box">
+                        <h3>SURVEILLANCE BIOMETRIC TELEMETRY</h3>
+                        <div class="telemetry-bars-list">
+                            <!-- Feature 1: Aspect Ratio -->
+                            <div class="feature-bar-group">
+                                <div class="fb-labels">
+                                    <span>Face Aspect Ratio (W/H shape index)</span>
+                                    <span class="text-glow-cyan font-hud" id="hud-val-aspect">--</span>
+                                </div>
+                                <div class="fb-track">
+                                    <div class="fb-fill fill-cyan" id="hud-fill-aspect"></div>
+                                </div>
+                                <span class="fb-desc">Geographical face shape mapping ratio (US profiles yield rounder aspects)</span>
+                            </div>
+
+                            <!-- Feature 2: Melanin Index -->
+                            <div class="feature-bar-group">
+                                <div class="fb-labels">
+                                    <span>Melanin Refraction index (Skin tone)</span>
+                                    <span class="text-glow-yellow font-hud" id="hud-val-melanin">--%</span>
+                                </div>
+                                <div class="fb-track">
+                                    <div class="fb-fill fill-yellow" id="hud-fill-melanin"></div>
+                                </div>
+                                <span class="fb-desc">Average skin tone luminance absorption (African profiles exceed 70%)</span>
+                            </div>
+
+                            <!-- Feature 3: Wrinkles variance -->
+                            <div class="feature-bar-group">
+                                <div class="fb-labels">
+                                    <span>Skin wrinkle variance (Age tremor index)</span>
+                                    <span class="text-glow-green font-hud" id="hud-val-wrinkle">--%</span>
+                                </div>
+                                <div class="fb-track">
+                                    <div class="fb-fill fill-green" id="hud-fill-wrinkle"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Scrolling Database translation logs Table -->
+                    <div class="table-container">
+                        <table class="hud-table" id="demographic-table">
+                            <thead>
+                                <tr>
+                                    <th>LOG ID</th>
+                                    <th>NATIONALITY</th>
+                                    <th>EMOTION</th>
+                                    <th>AGE</th>
+                                    <th>DRESS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="demographic-table-body">
+                                <tr>
+                                    <td colspan="5" class="empty-table-msg">Surveillance ledger standby. Activate feeds to record biometric demographics history.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="model.js"></script>
+    <script src="ui.js"></script>
+</body>
+</html>
