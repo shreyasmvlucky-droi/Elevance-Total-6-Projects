@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HairGenderNet: Age-Conditional Neural Classifier Console</title>
+    <meta name="description" content="A real-time Multi-Layer Perceptron neural network trained from scratch in the browser to model age-conditional gender classification rules with a premium glassmorphic UI.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+    <!-- Custom CSS Style -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="cyber-dark">
+
+    <!-- Glowing Background Effects -->
+    <div class="glow-bg-accent left-accent"></div>
+    <div class="glow-bg-accent right-accent"></div>
+
+    <div class="console-container">
+        <!-- Main Console Header -->
+        <header class="console-header">
+            <div class="header-logo-section">
+                <span class="pulse-dot idle" id="model-status-dot"></span>
+                <h1 class="header-title">HAIR-GENDER-NET</h1>
+                <span class="header-subtitle">AGE-CONDITIONAL CLASSIFICATION SYSTEM</span>
+            </div>
+            <div class="header-stats">
+                <div class="stat-box">
+                    <span class="stat-label">MODEL ENGINE</span>
+                    <span class="stat-val text-glow-yellow" id="model-engine-status">UNTRAINED</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">LOSS RATIO</span>
+                    <span class="stat-val text-glow-green" id="model-loss-val">--</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">ACCURACY</span>
+                    <span class="stat-val text-glow-cyan" id="model-accuracy-val">--</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Dashboard Layout -->
+        <main class="dashboard-grid">
+            
+            <!-- COLUMN 1: Subject Scanner & Input Controller -->
+            <section class="panel-card glassmorphic-panel" id="scanner-section">
+                <div class="panel-header">
+                    <span class="panel-header-icon">&#x2609;</span>
+                    <h2>SUBJECT SCANNER & INPUTS</h2>
+                </div>
+                
+                <div class="panel-body">
+                    <!-- Preset Profiles Picker -->
+                    <div class="control-group">
+                        <label class="control-label">PRESET TEST CASE PROFILES</label>
+                        <div class="preset-grid">
+                            <button class="preset-btn active" id="preset-1" data-age="25" data-hair="1" data-gender="0" data-img="preset_male_long">
+                                <span class="preset-title">Case A: 25M Long</span>
+                                <span class="preset-desc">Exception Zone (Rule Female)</span>
+                            </button>
+                            <button class="preset-btn" id="preset-2" data-age="22" data-hair="0" data-gender="1" data-img="preset_female_short">
+                                <span class="preset-title">Case B: 22F Short</span>
+                                <span class="preset-desc">Exception Zone (Rule Male)</span>
+                            </button>
+                            <button class="preset-btn" id="preset-3" data-age="17" data-hair="1" data-gender="0" data-img="preset_teen_male_long">
+                                <span class="preset-title">Case C: 17M Long</span>
+                                <span class="preset-desc">Out (Predict Correct: Male)</span>
+                            </button>
+                            <button class="preset-btn" id="preset-4" data-age="35" data-hair="0" data-gender="1" data-img="preset_adult_female_short">
+                                <span class="preset-title">Case D: 35F Short</span>
+                                <span class="preset-desc">Out (Predict Correct: Female)</span>
+                            </button>
+                            <button class="preset-btn" id="preset-5" data-age="15" data-hair="0" data-gender="1" data-img="preset_girl_short">
+                                <span class="preset-title">Case E: 15F Short</span>
+                                <span class="preset-desc">Out (Predict Correct: Female)</span>
+                            </button>
+                            <button class="preset-btn" id="preset-6" data-age="40" data-hair="1" data-gender="0" data-img="preset_man_long">
+                                <span class="preset-title">Case F: 40M Long</span>
+                                <span class="preset-desc">Out (Predict Correct: Male)</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Scanning Visual Panel -->
+                    <div class="scanner-viewport-wrapper">
+                        <div class="scanner-target-reticle"></div>
+                        <canvas id="scanner-canvas" width="340" height="230"></canvas>
+                        <div class="scanner-overlay-bar" id="scanner-laser"></div>
+                        <div class="scanner-data-hud">
+                            <div class="hud-item"><span class="hud-lbl">SYS_SCAN:</span> <span class="hud-val text-glow-green" id="hud-scanning-status">ONLINE</span></div>
+                            <div class="hud-item"><span class="hud-lbl">ROI:</span> <span class="hud-val text-glow-cyan">FACE_01</span></div>
+                        </div>
+                        <div class="upload-prompt" id="upload-zone">
+                            <span class="upload-icon">&#x21A1;</span>
+                            <span class="upload-text">Drag & Drop Image or Click to Scan</span>
+                            <input type="file" id="image-file-input" accept="image/*" style="display: none;">
+                        </div>
+                    </div>
+
+                    <!-- Manual Parameter Tuning -->
+                    <div class="tuning-section">
+                        <div class="tuning-header">
+                            <h3>MANUAL FEATURE ADJUSTER</h3>
+                            <span class="tech-indicator">SLIDERS OVERRIDE PRESET</span>
+                        </div>
+
+                        <!-- Age Slider -->
+                        <div class="slider-group">
+                            <div class="slider-header">
+                                <span class="slider-lbl">Subject Age:</span>
+                                <span class="slider-val text-glow-yellow" id="age-display-val">25 yrs</span>
+                            </div>
+                            <div class="range-container">
+                                <input type="range" id="age-slider" min="10" max="50" value="25" class="cyber-range">
+                                <div class="rule-zone-marker" title="Conditional Exception Rule Active (20 to 30 yrs)">
+                                    <span class="rule-marker-lbl">EXCEPTION ZONE (20-30)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Hair Length Toggle -->
+                        <div class="param-selector-group">
+                            <span class="param-lbl">Hair Length Feature:</span>
+                            <div class="binary-btn-group" id="hair-button-group">
+                                <button type="button" class="binary-btn" id="hair-short-btn" data-val="0">
+                                    <span class="icon">&#x2702;</span> Short
+                                </button>
+                                <button type="button" class="binary-btn active" id="hair-long-btn" data-val="1">
+                                    <span class="icon">&#x1F487;</span> Long
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- True Gender Selection -->
+                        <div class="param-selector-group">
+                            <span class="param-lbl">Biological Gender (True):</span>
+                            <div class="binary-btn-group" id="gender-button-group">
+                                <button type="button" class="binary-btn active" id="gender-male-btn" data-val="0">
+                                    Male
+                                </button>
+                                <button type="button" class="binary-btn" id="gender-female-btn" data-val="1">
+                                    Female
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- COLUMN 2: Interactive Synaptic Map & Trainer -->
+            <section class="panel-card glassmorphic-panel" id="network-section">
+                <div class="panel-header">
+                    <span class="panel-header-icon">&#x269E;</span>
+                    <h2>INTERACTIVE SYNAPTIC MAP</h2>
+                </div>
+                
+                <div class="panel-body network-body">
+                    <!-- Synapse Canvas -->
+                    <div class="synapse-canvas-wrapper">
+                        <canvas id="synapse-canvas" width="500" height="320"></canvas>
+                        <div class="network-legend">
+                            <span class="legend-dot input-dot"></span> Input Layer
+                            <span class="legend-dot hidden-dot"></span> Hidden Layers
+                            <span class="legend-dot output-dot"></span> Output
+                        </div>
+                    </div>
+
+                    <!-- Neural Network Trainer Controls -->
+                    <div class="trainer-console glassmorphic-subpanel">
+                        <div class="trainer-header">
+                            <span class="section-badge">MLP MODEL TRAINING SYSTEM</span>
+                            <div class="learning-rate-hud">
+                                <span>LR:</span>
+                                <select id="lr-select" class="cyber-select">
+                                    <option value="0.05">0.05 (Slow)</option>
+                                    <option value="0.1" selected>0.10 (Standard)</option>
+                                    <option value="0.25">0.25 (Aggressive)</option>
+                                    <option value="0.5">0.50 (Turbo)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="trainer-stats">
+                            <div class="t-stat"><span class="t-lbl">Epochs:</span> <span class="t-val text-glow-cyan" id="train-epoch-display">0</span></div>
+                            <div class="t-stat"><span class="t-lbl">Loss:</span> <span class="t-val text-glow-green" id="train-loss-display">--</span></div>
+                            <div class="t-stat"><span class="t-lbl">Validation:</span> <span class="t-val text-glow-yellow" id="train-val-display">--</span></div>
+                        </div>
+
+                        <div class="trainer-actions">
+                            <button class="cyber-action-btn primary-glow-btn" id="train-start-btn">
+                                <span class="btn-icon">&#x25B6;</span> Train Network
+                            </button>
+                            <button class="cyber-action-btn" id="train-reset-btn">
+                                <span class="btn-icon">&#x21BB;</span> Reset Weights
+                            </button>
+                        </div>
+
+                        <div class="loss-chart-wrapper">
+                            <canvas id="loss-chart-canvas" width="460" height="85"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- COLUMN 3: Inference Result & Rule Explanation Engine -->
+            <section class="panel-card glassmorphic-panel" id="inference-section">
+                <div class="panel-header">
+                    <span class="panel-header-icon">&#x2637;</span>
+                    <h2>CLASSIFICATION ENGINE</h2>
+                </div>
+                
+                <div class="panel-body">
+                    <!-- Final Predicted Gender Result Card -->
+                    <div class="result-display-card" id="gender-result-card">
+                        <div class="result-decor-grid"></div>
+                        <div class="result-title-row">
+                            <span class="result-badge">CLASSIFICATION DETECTED</span>
+                            <span class="result-clock" id="hud-clock">00:00:00</span>
+                        </div>
+                        <div class="result-value text-glow-pink" id="gender-predicted-text">FEMALE</div>
+                        
+                        <!-- Glow bar graph for output -->
+                        <div class="confidence-bar-container">
+                            <div class="confidence-bar-fill" id="prediction-confidence-fill"></div>
+                            <div class="confidence-labels">
+                                <span class="prob-lbl">Probability (Female/Male Split)</span>
+                                <span class="prob-val text-glow-cyan" id="prediction-confidence-val">99.8%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step-by-Step Logic Explainer Flow -->
+                    <div class="explainer-section">
+                        <h3>RULE ENGINE STEP-EXPLAINER</h3>
+                        <div class="explain-flow-list">
+                            <!-- Step 1 -->
+                            <div class="explain-step done" id="step-1">
+                                <span class="step-num">01</span>
+                                <div class="step-details">
+                                    <span class="step-title">Subject Age Evaluation</span>
+                                    <span class="step-summary" id="step-1-desc">Age detected at 25 yrs.</span>
+                                </div>
+                                <span class="step-status success">&#x2713;</span>
+                            </div>
+                            <!-- Step 2 -->
+                            <div class="explain-step done" id="step-2">
+                                <span class="step-num">02</span>
+                                <div class="step-details">
+                                    <span class="step-title">Age-Conditional Exception Rule Check</span>
+                                    <span class="step-summary" id="step-2-desc">Is Age 20 to 30? Yes -> Exception rule active.</span>
+                                </div>
+                                <span class="step-status exception" id="step-2-status-icon">&#x26A0;</span>
+                            </div>
+                            <!-- Step 3 -->
+                            <div class="explain-step done" id="step-3">
+                                <span class="step-num">03</span>
+                                <div class="step-details">
+                                    <span class="step-title">Logic Constraint Application</span>
+                                    <span class="step-summary" id="step-3-desc">Hair length override: Long Hair forces Female classification.</span>
+                                </div>
+                                <span class="step-status success">&#x2713;</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Batch Performance & Suite Playground -->
+                    <div class="batch-playground-section">
+                        <div class="playground-header">
+                            <h3>PERFORMANCE PLAYGROUND</h3>
+                            <button class="small-action-btn" id="run-batch-tests-btn">
+                                &#x21B9; Run Batch Suite (80 samples)
+                            </button>
+                        </div>
+                        
+                        <div class="performance-flex">
+                            <!-- Confusion Matrix Container -->
+                            <div class="confusion-matrix-card">
+                                <div class="cm-grid">
+                                    <div class="cm-header-empty"></div>
+                                    <div class="cm-header-lbl">Pred F</div>
+                                    <div class="cm-header-lbl">Pred M</div>
+                                    
+                                    <div class="cm-side-lbl">True F</div>
+                                    <div class="cm-cell text-glow-green" id="cm-tp" title="True Positive">--</div>
+                                    <div class="cm-cell" id="cm-fn" title="False Negative">--</div>
+                                    
+                                    <div class="cm-side-lbl">True M</div>
+                                    <div class="cm-cell" id="cm-fp" title="False Positive">--</div>
+                                    <div class="cm-cell text-glow-cyan" id="cm-tn" title="True Negative">--</div>
+                                </div>
+                                <div class="cm-footer">Live MLP Rule Match Grid</div>
+                            </div>
+
+                            <!-- Performance Stats List -->
+                            <div class="performance-stats-list">
+                                <div class="perf-item"><span class="perf-lbl">Accuracy:</span> <span class="perf-val text-glow-green" id="cm-accuracy">--</span></div>
+                                <div class="perf-item"><span class="perf-lbl">Precision:</span> <span class="perf-val text-glow-cyan" id="cm-precision">--</span></div>
+                                <div class="perf-item"><span class="perf-lbl">Recall:</span> <span class="perf-val text-glow-yellow" id="cm-recall">--</span></div>
+                                <div class="perf-item"><span class="perf-lbl">F1 Score:</span> <span class="perf-val" id="cm-f1">--</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Dynamic 2D Decision Space boundary Map Section (Bottom) -->
+        <footer class="console-footer">
+            <section class="panel-card glassmorphic-panel">
+                <div class="panel-header">
+                    <span class="panel-header-icon">&#x2652;</span>
+                    <h2>NEURAL DECISION SPACE MATRIX (AGE VS HAIR LENGTH)</h2>
+                    <span class="tech-indicator text-glow-cyan">REAL-TIME MLP BOUNDARY RESOLUTION</span>
+                </div>
+                <div class="panel-body footer-panel-body">
+                    <div class="matrix-layout">
+                        <div class="matrix-canvas-wrapper">
+                            <canvas id="matrix-canvas" width="550" height="150"></canvas>
+                            <div class="matrix-y-axis-lbl">Hair Length (Short &rarr; Long)</div>
+                            <div class="matrix-x-axis-lbl">Subject Age (10 &rarr; 50 yrs)</div>
+                        </div>
+                        <div class="matrix-explanation-card glassmorphic-subpanel">
+                            <h3>VISUALIZING THE CONDITIONAL OVERRIDE</h3>
+                            <p>This grid graphs the MLP classifier's entire internal state across continuous parameters. Moving your sliders updates the flashing crosshair marker in real-time.</p>
+                            <div class="matrix-legend-row">
+                                <div class="ml-item"><span class="ml-color ml-blue"></span> Predicted Male Zone</div>
+                                <div class="ml-item"><span class="ml-color ml-pink"></span> Predicted Female Zone</div>
+                                <div class="ml-item"><span class="ml-color ml-accent"></span> Active Exc. Range (20-30)</div>
+                            </div>
+                            <div class="matrix-boundary-stats">
+                                <div>Model Integrity: <span class="text-glow-green" id="matrix-integrity">READY</span></div>
+                                <div>State Resolution: <span class="text-glow-cyan">40x40 Grid Mapping</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="model.js"></script>
+    <script src="ui.js"></script>
+</body>
+</html>
