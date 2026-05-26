@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoiceDemographicsEye: Age and Emotion Voice Analyzer Console</title>
+    <meta name="description" content="A real-time voice age and emotion analyzer featuring autocorrelation pitch detection, vocal gender rejections, and direct microphone integrations.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+    <!-- Custom CSS Style -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="acoustic-theme">
+
+    <!-- Glowing Background Accents -->
+    <div class="acoustic-glow left-glow"></div>
+    <div class="acoustic-glow right-glow"></div>
+
+    <div class="console-box">
+        <!-- Dashboard Header -->
+        <header class="console-header">
+            <div class="header-branding">
+                <span class="hud-status-led pulsing-green" id="sys-status-led"></span>
+                <h1 class="hud-title">VOICE-DEMOGRAPHICS-EYE</h1>
+                <span class="hud-divider"></span>
+                <span class="hud-tag">SPEECH DESTRUCTURING ENGINE v1.8</span>
+            </div>
+            
+            <div class="header-hud-stats">
+                <div class="hud-stat">
+                    <span class="hud-lbl">GATEWAY STATE</span>
+                    <span class="hud-val text-glow-cyan" id="stat-gateway-state">STANDBY</span>
+                </div>
+                <div class="hud-stat">
+                    <span class="hud-lbl">ANALYZED SCANS</span>
+                    <span class="hud-val text-glow-yellow" id="stat-total-scans">0</span>
+                </div>
+                <div class="hud-stat">
+                    <span class="hud-lbl">SENIOR CITIZENS</span>
+                    <span class="hud-val text-glow-gold" id="stat-senior-scans">0</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Workspace Grid -->
+        <main class="dashboard-grid">
+            
+            <!-- COLUMN 1: Acoustic Oscilloscope & Audio Wave Viewport -->
+            <section class="panel-card glass-panel" id="oscilloscope-section">
+                <div class="panel-title-bar">
+                    <span class="bar-icon">&#x260E;</span>
+                    <h2>ACOUSTIC OSCILLOSCOPE MONITOR</h2>
+                    <span class="hud-sample-rate">SAMPLE_RATE: 44.1kHz</span>
+                </div>
+                
+                <div class="panel-body">
+                    <!-- Audio Input Tabs -->
+                    <div class="audio-tabs">
+                        <button class="tab-btn active" id="tab-presets" type="button">
+                            &#x1F399; VOICE PRESET FILES
+                        </button>
+                        <button class="tab-btn" id="tab-microphone" type="button">
+                            &#x1F3A4; LIVE MIC CAPTURE
+                        </button>
+                    </div>
+
+                    <!-- Double Oscilloscope/Frequency Display -->
+                    <div class="viewport-outer">
+                        <div class="oscilloscope-grid"></div>
+                        <!-- Canvas 1: Time Domain Oscilloscope -->
+                        <canvas id="canvas-oscilloscope" width="480" height="150"></canvas>
+                        
+                        <!-- Canvas 2: Frequency Domain Spectrogram -->
+                        <canvas id="canvas-spectrogram" width="480" height="90"></canvas>
+                        
+                        <!-- Overlay Binders -->
+                        <div class="viewport-hud-bottom">
+                            <div>FEED_SRC: <span class="text-glow-green" id="hud-audio-source">SYNTHESIZED_WAVE_BUFFER</span></div>
+                            <div id="hud-clock">00:00:00</div>
+                        </div>
+                    </div>
+
+                    <!-- Voice Input Controllers -->
+                    <div class="audio-controllers">
+                        <!-- Presets Panel -->
+                        <div class="ctrl-subpanel active" id="ctrl-presets-panel">
+                            <span class="section-label">SELECT DEMOGRAPHIC SPEECH PRESET</span>
+                            <div class="presets-grid">
+                                <button class="preset-btn" id="preset-1" data-pitch="110" data-jitter="0.15" data-energy="0.32" data-gender="Male" data-desc="Young Adult Male (Stable pitch)">
+                                    <span class="preset-title">Case A: 28yo Male</span>
+                                    <span class="preset-desc">110Hz - Clear Tone (Adult)</span>
+                                </button>
+                                <button class="preset-btn" id="preset-2" data-pitch="102" data-jitter="0.82" data-energy="0.18" data-gender="Male" data-desc="Senior Male (Vocal Tremors/Calm)">
+                                    <span class="preset-title">Case B: 68yo Male (Calm)</span>
+                                    <span class="preset-desc">102Hz - Raspy Tremor (Senior)</span>
+                                </button>
+                                <button class="preset-btn" id="preset-3" data-pitch="96" data-jitter="0.92" data-energy="0.85" data-gender="Male" data-desc="Senior Male (Vocal Tremors/Excited)">
+                                    <span class="preset-title">Case C: 74yo Male (Angry)</span>
+                                    <span class="preset-desc">96Hz - Trembled Volume (Senior)</span>
+                                </button>
+                                <button class="preset-btn" id="preset-4" data-pitch="205" data-jitter="0.10" data-energy="0.45" data-gender="Female" data-desc="Adult Female (High Pitch pitch)">
+                                    <span class="preset-title">Case D: 25yo Female</span>
+                                    <span class="preset-desc">205Hz - High Pitch (Rejected)</span>
+                                </button>
+                                <button class="preset-btn" id="preset-5" data-pitch="125" data-jitter="0.08" data-energy="0.25" data-desc="Young Boy (Higher pitch)">
+                                    <span class="preset-title">Case E: 19yo Male</span>
+                                    <span class="preset-desc">125Hz - Smooth Tone (Adult)</span>
+                                </button>
+                                <button class="preset-btn" id="preset-6" data-pitch="190" data-jitter="0.75" data-energy="0.22" data-gender="Female" data-desc="Senior Female (Trembling pitch)">
+                                    <span class="preset-title">Case F: 70yo Female</span>
+                                    <span class="preset-desc">190Hz - Elder Female (Rejected)</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Microphone Panel -->
+                        <div class="ctrl-subpanel" id="ctrl-mic-panel">
+                            <div class="ctrl-row">
+                                <button class="cyber-btn primary-btn" id="btn-start-record">
+                                    &#x2B55; Record Voice Note
+                                </button>
+                                <button class="cyber-btn" id="btn-stop-record" disabled>
+                                    &#x274C; Analyze Recording
+                                </button>
+                            </div>
+                            <!-- Audio drag and drop zone -->
+                            <div class="audio-upload-zone" id="audio-drop-zone">
+                                <span class="upload-icon">&#x21A1;</span>
+                                <span class="upload-text">Drag & Drop Voice File (.wav, .mp3) or Click to Upload</span>
+                                <input type="file" id="audio-file-input" accept="audio/*" style="display: none;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- COLUMN 2: Demographic Results & Acoustic Feature HUD -->
+            <section class="panel-card glass-panel" id="results-section">
+                <div class="panel-title-bar">
+                    <span class="bar-icon">&#x26CE;</span>
+                    <h2>DESTRUCTURING & CLASSIFICATION MODULE</h2>
+                </div>
+                
+                <div class="panel-body">
+                    <!-- Target Demographic Result Card -->
+                    <div class="result-card" id="demographic-result-card">
+                        <div class="result-decor"></div>
+                        <div class="result-header">
+                            <span class="result-badge">CLASSIFICATION SYSTEM LOG</span>
+                            <span class="result-led" id="card-status-led"></span>
+                        </div>
+                        
+                        <!-- Dynamic Outcomes Grid -->
+                        <div class="result-main-val text-glow-cyan" id="result-status-title">AWAITING INPUT</div>
+                        
+                        <div class="demographics-grid-box" id="result-metrics-grid">
+                            <div class="res-item">
+                                <span class="res-lbl">ESTIMATED AGE</span>
+                                <span class="res-val text-glow-cyan" id="res-val-age">--</span>
+                            </div>
+                            <div class="res-item">
+                                <span class="res-lbl">SENIOR CITIZEN</span>
+                                <span class="res-val" id="res-val-senior">--</span>
+                            </div>
+                            <!-- Emotion Module (Locked conditionally under 60) -->
+                            <div class="res-item" id="res-emotion-item">
+                                <span class="res-lbl">DETECTED EMOTION</span>
+                                <span class="res-val text-glow-gold" id="res-val-emotion">🔒 LOCKED</span>
+                            </div>
+                        </div>
+                        
+                        <div class="result-error-msg text-glow-red" id="result-error-message" style="display: none;">
+                            Upload male voice
+                        </div>
+                    </div>
+
+                    <!-- Live Voice Diagnostics Feature HUD -->
+                    <div class="diagnostics-hud glass-box">
+                        <h3>EXTRACTED SPEECH TELEMETRY</h3>
+                        <div class="features-bars-list">
+                            <!-- Feature 1: Pitch -->
+                            <div class="feature-bar-group">
+                                <div class="fb-labels">
+                                    <span>Vocal Pitch (F0 Frequency)</span>
+                                    <span class="text-glow-cyan font-hud" id="feature-val-pitch">-- Hz</span>
+                                </div>
+                                <div class="fb-track">
+                                    <div class="fb-fill fill-cyan" id="feature-fill-pitch"></div>
+                                    <div class="fb-limit-marker" style="left: 65%;" title="Male Pitch Threshold Limit (165Hz)"></div>
+                                </div>
+                                <span class="fb-desc">Female boundaries exceed 165Hz (represented to the right of red marker)</span>
+                            </div>
+
+                            <!-- Feature 2: Jitter -->
+                            <div class="feature-bar-group">
+                                <div class="fb-labels">
+                                    <span>Vocal Frequency Jitter (Tremor index)</span>
+                                    <span class="text-glow-yellow font-hud" id="feature-val-jitter">-- %</span>
+                                </div>
+                                <div class="fb-track">
+                                    <div class="fb-fill fill-yellow" id="feature-fill-jitter"></div>
+                                </div>
+                                <span class="fb-desc">Correlates to muscular vocal chord tremble (elderly tremor rates exceed 60%)</span>
+                            </div>
+
+                            <!-- Feature 3: Energy -->
+                            <div class="feature-bar-group">
+                                <div class="fb-labels">
+                                    <span>Spectral Energy Dynamics (RMS Vol)</span>
+                                    <span class="text-glow-gold font-hud" id="feature-val-energy">-- dB</span>
+                                </div>
+                                <div class="fb-track">
+                                    <div class="fb-fill fill-gold" id="feature-fill-energy"></div>
+                                </div>
+                                <span class="fb-desc">Speech volume variations (emotion detection triggers on high amplitude spikes)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Manual Calibration Override Panel -->
+                    <div class="calibration-override-section glass-box">
+                        <div class="cal-header">
+                            <h3>MANUAL CALIBRATION OVERRIDES</h3>
+                            <span class="cal-tag">TUNE SPEECH TELEMETRY</span>
+                        </div>
+                        <p class="cal-desc">Drag sliders to manually calibrate features and override microphone extractions to inspect ML decision boundary margins.</p>
+                        
+                        <!-- Slider 1: Pitch -->
+                        <div class="cal-slider-group">
+                            <div class="cs-labels">
+                                <span>Fundamental Pitch (F0):</span>
+                                <span class="text-glow-cyan font-hud" id="cal-val-pitch">110 Hz</span>
+                            </div>
+                            <input type="range" id="cal-slider-pitch" min="70" max="250" value="110" class="cyber-slider">
+                        </div>
+
+                        <!-- Slider 2: Jitter -->
+                        <div class="cal-slider-group">
+                            <div class="cs-labels">
+                                <span>Vocal Jitter (Tremor):</span>
+                                <span class="text-glow-yellow font-hud" id="cal-val-jitter">15%</span>
+                            </div>
+                            <input type="range" id="cal-slider-jitter" min="0" max="100" value="15" class="cyber-slider">
+                        </div>
+
+                        <!-- Slider 3: Energy -->
+                        <div class="cal-slider-group">
+                            <div class="cs-labels">
+                                <span>Energy Dynamics:</span>
+                                <span class="text-glow-gold font-hud" id="cal-val-energy">32%</span>
+                            </div>
+                            <input type="range" id="cal-slider-energy" min="0" max="100" value="32" class="cyber-slider">
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="model.js"></script>
+    <script src="ui.js"></script>
+</body>
+</html>
